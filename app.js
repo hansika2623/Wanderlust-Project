@@ -1,5 +1,6 @@
-//npm init -y ; npm i express ; npm i ejs ; npm i mongoose ; npm i method-override ; npm i ejs-mate   ->These aare the packages installed for the project
+//npm init -y ; npm i express ; npm i ejs ; npm i mongoose ; npm i method-override ; npm i ejs-mate ; npm i joi  ->These aare the packages installed for the project
 //ejs-mate is used for styling the template in more advanced way
+//joi is used to validate the schema(server side)
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -9,6 +10,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError= require("./utils/ExpressError.js");
+const {listingSchema} = require("./schema.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -33,20 +35,31 @@ app.get("/",(req,res)=>{
     res.send("Hi, I am root!");
 });
 
+const validateListing = (req,res,next)=>{
+    let {error}=listingSchema.validate(req.body);
+    
+    if(error){
+        let errMsg = error.details.map((el)=>el.message).join(",");
+        throw new ExpressError(400,errMsg);
+    }else{
+        next();
+    }
+}
+
 //Index Route
-app.get("/listings",async (req,res)=>{
+app.get("/listings",wrapAsync(async (req,res)=>{
     const allListings = await Listing.find({});
     //console.log(allListings);
     res.render("listings/index.ejs",{allListings});    
-});
+}));
 
 //New Route
-app.get("/listings/new",async(req,res)=>{
+app.get("/listings/new",(req,res)=>{
     res.render("listings/new.ejs");
 });
 
 //Create Route
-app.post("/listings", wrapAsync(async(req,res,next)=>{
+app.post("/listings",validateListing, wrapAsync(async(req,res,next)=>{
     //let {title,description,image,price,location,country}=req.body;
     //or you can use the given below format
     //in the new.ejs we create a key value listing in all input type by writting it as 'listing[title]' for example and then this listing is called as req.body.listing
@@ -57,33 +70,33 @@ app.post("/listings", wrapAsync(async(req,res,next)=>{
 }));
 
 //Edit Route
-app.get("/listings/:id/edit",async(req,res)=>{
+app.get("/listings/:id/edit",wrapAsync(async(req,res)=>{
     let {id} = req.params;
     const listing = await Listing.findById(id);
     res.render("listings/edit.ejs",{listing});
-});
+}));
 
 //Update Route
-app.put("/listings/:id", async(req,res)=>{
+app.put("/listings/:id",validateListing, wrapAsync(async(req,res)=>{
     let {id} = req.params;
     await Listing.findByIdAndUpdate(id,{...req.body.listing});//req.body.listing is the javascript object which has several values. Thus, we deconstruct this by writiing (...req.body.listing) and extract the individual values from the object.
     res.redirect(`/listings/${id}`);
-});
+}));
 
 //Show Route
-app.get("/listings/:id",async(req,res)=>{
+app.get("/listings/:id",wrapAsync(async(req,res)=>{
     let {id} = req.params;
     const listing = await Listing.findById(id);
     res.render("listings/show.ejs",{listing});
-});
+}));
 
 //Delete Route
-app.delete("/listings/:id",async(req,res)=>{
+app.delete("/listings/:id",wrapAsync(async(req,res)=>{
     let {id}= req.params,s;
     let deletedListing = await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
     res.redirect("/listings");
-})
+}));
 
 // app.get("/testListing",async (req,res)=>{
 //     let sampleListing = new Listing({
@@ -104,8 +117,9 @@ app.all("*",(req,res,next)=>{
 });
 
 app.use((err,req,res,next)=>{
-    let {statusCode, message} = err;
-    res.status(statusCode).send(message);
+    let {statusCode=500, message="Something went wrong!"} = err;
+    res.status(statusCode).render("error.ejs",{err});
+    // res.status(statusCode).send(message);
 });
 
 app.listen(8080,()=>{
