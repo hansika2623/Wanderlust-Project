@@ -4,13 +4,14 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
-const Listing = require("./models/listing.js");
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError= require("./utils/ExpressError.js");
-const {listingSchema} = require("./schema.js");
+const { wrap } = require("module");
+
+const listings = require("./routes/listing.js");
+const reviews = require("./routes/review.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 
@@ -35,82 +36,8 @@ app.get("/",(req,res)=>{
     res.send("Hi, I am root!");
 });
 
-const validateListing = (req,res,next)=>{
-    let {error}=listingSchema.validate(req.body);
-    
-    if(error){
-        let errMsg = error.details.map((el)=>el.message).join(",");
-        throw new ExpressError(400,errMsg);
-    }else{
-        next();
-    }
-}
-
-//Index Route
-app.get("/listings",wrapAsync(async (req,res)=>{
-    const allListings = await Listing.find({});
-    //console.log(allListings);
-    res.render("listings/index.ejs",{allListings});    
-}));
-
-//New Route
-app.get("/listings/new",(req,res)=>{
-    res.render("listings/new.ejs");
-});
-
-//Create Route
-app.post("/listings",validateListing, wrapAsync(async(req,res,next)=>{
-    //let {title,description,image,price,location,country}=req.body;
-    //or you can use the given below format
-    //in the new.ejs we create a key value listing in all input type by writting it as 'listing[title]' for example and then this listing is called as req.body.listing
-    // let listing = req.body.listing;
-    const newListing = new Listing(req.body.listing);
-    await newListing.save();
-    res.redirect("/listings");
-}));
-
-//Edit Route
-app.get("/listings/:id/edit",wrapAsync(async(req,res)=>{
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    res.render("listings/edit.ejs",{listing});
-}));
-
-//Update Route
-app.put("/listings/:id",validateListing, wrapAsync(async(req,res)=>{
-    let {id} = req.params;
-    await Listing.findByIdAndUpdate(id,{...req.body.listing});//req.body.listing is the javascript object which has several values. Thus, we deconstruct this by writiing (...req.body.listing) and extract the individual values from the object.
-    res.redirect(`/listings/${id}`);
-}));
-
-//Show Route
-app.get("/listings/:id",wrapAsync(async(req,res)=>{
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    res.render("listings/show.ejs",{listing});
-}));
-
-//Delete Route
-app.delete("/listings/:id",wrapAsync(async(req,res)=>{
-    let {id}= req.params,s;
-    let deletedListing = await Listing.findByIdAndDelete(id);
-    console.log(deletedListing);
-    res.redirect("/listings");
-}));
-
-// app.get("/testListing",async (req,res)=>{
-//     let sampleListing = new Listing({
-//         title:"My new villa",
-//         description:"By the beach",
-//         price:1200,
-//         location:"Calangute, Goa",
-//         country:"India",
-//     });
-
-//     await sampleListing.save();
-//     console.log("Sample was saved");
-//     res.send("Successful testing");
-// });
+app.use("/listings",listings);
+app.use("/listings/:id/reviews",reviews);
 
 app.all("*",(req,res,next)=>{
     next(new ExpressError(404,"Page not found!"));
