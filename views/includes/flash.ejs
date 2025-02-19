@@ -1,0 +1,15 @@
+<!--for success-->
+<%if(success && success.length){%><!-- Since succes is an empty array so alert is still showing hence we defined our another condition which states that the length should also be greater than 0 for an pop up of alert -->
+    <div class="alert alert-success alert-dismissible fade show col-6 offset-3" role="alert">
+        <%=success%>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<%}%>
+
+<!--for errors-->
+<%if(error && error.length){%><!-- Since succes is an empty array so alert is still showing hence we defined our another condition which states that the length should also be greater than 0 for an pop up of alert -->
+    <div class="alert alert-danger alert-dismissible fade show col-6 offset-3" role="alert">
+        <%=error%>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<%}%>
