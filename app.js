@@ -3,6 +3,14 @@
 //ejs-mate is used for styling the template in more advanced way
 //joi is used to validate the schema(server side)
 //npm i passport ; npm i passport-local; npm i passport-local-mongoose (All these libraries are used for authentication. Since it is passport local so it is used only for local username and password. If you want to signup and login using your any other platform like goggle, linkedin etc. then visit passportjs.org website and use the libraries accordingly.)
+//npm i multer(It is a node.js miidleware for handling multipart/form-data, which is primarily used for uploading files. )
+//npm i dotenv files(credentials are taken by signing in on cloudinary throgh han*************3@gmail.com)
+//npm i cloudinary multer-storage-cloudinary
+
+if(process.env.NODE_ENV != "production"){//it is only used in development phase and not in production phase
+    require('dotenv').config();//This is due to the fact that .env file contains credentials which can't be shared and thus .env files are not uploaded on the github 
+}
+
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
