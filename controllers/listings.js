@@ -37,10 +37,7 @@ module.exports.createListing = async(req,res,next)=>{
         limit: 1,
       })
       .send();
-    //let {title,description,image,price,location,country}=req.body;
-    //or you can use the given below format
-    //in the new.ejs we create a key value listing in all input type by writting it as 'listing[title]' for example and then this listing is called as req.body.listing
-    // let listing = req.body.listing;
+      
     let url = req.file.path;
     let filename = req.file.filename;
     
