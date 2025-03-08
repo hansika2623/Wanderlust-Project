@@ -97,3 +97,9 @@ body {
     padding: 0;
     padding-right: 0;
 }
+
+/* MAP STYLING */
+#map{
+    height: 400px;
+    width: 80vh;
+}
