@@ -1,10 +1,13 @@
-const Listing = require("../models/listing");
-const Review = require("../models/review");
+
 const User = require("../models/user");
 
 module.exports.renderSignupForm =(req,res)=>{
     res.render("users/signup.ejs");
 };
+
+module.exports.redirect = (req,res) => {
+    res.redirect("/listings");
+}
 
 module.exports.signup = async(req,res)=>{
     try{
@@ -30,7 +33,7 @@ module.exports.renderLoginForm = (req,res)=>{
 }
 
 module.exports.login =async (req,res)=>{
-    req.flash("success","Welcome to WanderLust! You are logged-in!");
+    req.flash("success","Welcome back to WanderLust! You are logged-in!");
     let redirectUrl = res.locals.redirectUrl || "/listings";
     res.redirect(redirectUrl);
 }
@@ -43,4 +46,4 @@ module.exports.logout = (req,res,next)=>{
         req.flash("success","You are logged out!");
         res.redirect("/listings");
     })
-}
+};
